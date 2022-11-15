@@ -15,7 +15,6 @@ def check_barcode(barcode):
     return True
 
 
-
 if __name__ == "__main__":
     with PLC() as comm:
         comm.IPAddress = '192.168.1.1'
@@ -24,17 +23,17 @@ if __name__ == "__main__":
             try:
                 if comm.Read(CHECK_TAG):
                     tag = comm.Read(CODE_TAG)
-                    if check_barcode(CODE_TAG):
-                        comm.Write([(GOOD_TAG, True), (BAD_TAG, False)])
-                    else:
-                        comm.Write([(GOOD_TAG, False), (BAD_TAG, True)])
+                    status =  check_barcode(CODE_TAG)
+                    comm.Write([(GOOD_TAG, status), (BAD_TAG, not status)])
                 else:
                     time.sleep(.2)
-            except:
-                pass
 
-        ret = comm.Read('MyTagName')
-        print(ret.TagName, ret.Value, ret.Status)
+            except KeyboardInterrupt:
+                print('exiting')
+                read = False
+            except Exception as e:
+                print('Unhandled Exception', e)
+            
 
 # db = sqlite3.connect('TEST.db')
 # cursor = db.cursor()
