@@ -12,8 +12,8 @@ def startup():
     pass
 
 
-def check_barcode(barcode):
-    print(barcode)
+def check_barcode(barcode, part):
+    print('Part: ', part ,'Barcode: ', barcode)
     return True
 
 
@@ -26,13 +26,11 @@ if __name__ == "__main__":
         while read:
             try:
                 result=comm.Read(CHECK_TAG)
-                print(result)
                 if result.Value == True:
-                    import pdb; pdb.Pdb().set_trace()
                     tags = comm.Read([CODE_TAG, LASER_JOB])
                     mark = tags[0].Value
                     job = tags[1].Value
-                    status =  check_barcode(CODE_TAG)
+                    status =  check_barcode(mark, job)
                     comm.Write([(GOOD_TAG, status), (BAD_TAG, not status)])
                 else:
                     time.sleep(.2)
