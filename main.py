@@ -25,7 +25,7 @@ if __name__ == "__main__":
         read = True
         while read:
             try:
-                if comm.Read(CHECK_TAG):
+                if comm.Read(CHECK_TAG).Value:
                     tags = comm.Read([CODE_TAG, LASER_JOB])
                     mark = tags[0].Value
                     job = tags[1].Value
