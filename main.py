@@ -21,7 +21,7 @@ if __name__ == "__main__":
     startup()
 
     with PLC() as comm:
-        comm.IPAddress = '192.168.1.1'
+        comm.IPAddress = '192.168.1.3'
         read = True
         while read:
             try:
