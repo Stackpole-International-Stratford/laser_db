@@ -31,7 +31,7 @@ if __name__ == "__main__":
                     mark = tags[0].Value
                     job = tags[1].Value
                     status =  check_barcode(mark, job)
-                    comm.Write([(GOOD_TAG, status), (BAD_TAG, not status)])
+                    comm.Write([(GOOD_TAG, status), (BAD_TAG, not status), (CHECK_TAG, False)])
                 else:
                     time.sleep(.2)
 
