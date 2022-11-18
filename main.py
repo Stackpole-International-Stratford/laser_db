@@ -26,6 +26,7 @@ if __name__ == "__main__":
         while read:
             try:
                 if comm.Read(CHECK_TAG).Value:
+                    import pdb; pdb.Pdb().set_trace()
                     tags = comm.Read([CODE_TAG, LASER_JOB])
                     mark = tags[0].Value
                     job = tags[1].Value
