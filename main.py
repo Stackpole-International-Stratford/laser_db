@@ -26,12 +26,17 @@ if __name__ == "__main__":
         while read:
             try:
                 result=comm.Read(CHECK_TAG)
-                if result.Value == True:
+                if result.Value:
                     tags = comm.Read([CODE_TAG, LASER_JOB])
                     mark = tags[0].Value
                     job = tags[1].Value
                     status =  check_barcode(mark, job)
-                    comm.Write([(GOOD_TAG, status), (BAD_TAG, not status), (CHECK_TAG, False)])
+                    comm.Write([(GOOD_TAG, status), (BAD_TAG, not status)])
+                    waiting = True
+                    while waiting:
+                        waiting = comm.Read(CHECK_TAG).Value
+                        time.sleep(.2)
+                      
                 else:
                     time.sleep(.2)
 
