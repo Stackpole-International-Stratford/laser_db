@@ -1,1 +1,1 @@
-build-essential, libsystemd-journal-dev, libsystemd-daemon-dev, libsystemd-dev
+build-essential, libsystemd-dev
