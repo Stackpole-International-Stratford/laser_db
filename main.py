@@ -4,6 +4,11 @@ from pylogix import PLC
 import re
 from datetime import datetime
 
+import logging
+from systemd.journal import JournaldLogHandler
+
+
+
 CHECK_TAG = 'Verify_Barcode'
 CODE_TAG = 'Laser_QR_Code_Text'
 GOOD_TAG = 'Barcode_OK'
@@ -20,31 +25,44 @@ PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)
         {'part': '50-5214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
 ]
   #'V5SS 22 332 3 0002 24049840'
+
+def setup_logging(log_level=logging.DEBUG):
+    logger = logging.getLogger('laserdb')
+    journald_handler = JournaldLogHandler()
+    journald_handler.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
+    logger.addHandler(journald_handler)
+    logger.setLevel(log_level)
+    return logger
+
 def startup():
-    # print(check_barcode('V5SS223461001024046420', '50-8670'))
+    global logger
+    logger = setup_logging()
     pass
 
 def check_barcode(barcode, part):
 
-    print('Part: ', part ,'Barcode: ', barcode)
-    # return True
+    logger.info('Checking: ', barcode, 'for part: ', part)
 
     # https://stackoverflow.com/a/8653568
     pun_entry = next((item for item in PUNS if item["part"] == part), None)
     if not pun_entry:
+        logger.info('Failed to find part data!')
         return False
     
     result = re.search(pun_entry['regex'], barcode)
     if not result:
+        logger.info('Failed to match part data!')
         return False
 
     year = result.group('year')
     if not year == '22':
+        logger.info('Unexpected year, ', year, ' expected 22!')
         return False
 
     day_of_year = datetime.now().timetuple().tm_yday
     jdate = result.group('jdate')
     if not int(jdate) == day_of_year:
+        logger.info('Unexpected day of the year, ', jdate, ' expected: ', day_of_year)
         return False
     
     station = result.group('station')
@@ -53,7 +71,7 @@ def check_barcode(barcode, part):
     return True
 
 
-def writer(comm, tag, value=True):
+def write_tag(comm, tag, value=True):
     passes =0
     rewrite = True
     while rewrite:
@@ -69,7 +87,7 @@ def writer(comm, tag, value=True):
             if tag_result.Value == True:
                 rewrite = False
     
-    print('Write Passes: ', passes)
+    logger.info('Write Passes: ', passes)
 
 
 if __name__ == "__main__":
@@ -78,6 +96,7 @@ if __name__ == "__main__":
     comm = PLC()
     comm.IPAddress = '192.168.1.3'
     read = True
+    logger.info('Starting main loop')
     while True:
         try:
             result=comm.Read(CHECK_TAG)
@@ -87,22 +106,21 @@ if __name__ == "__main__":
                 job = tags[1].Value
                 status =  check_barcode(mark, job)
                 if status:
-                    writer(comm, GOOD_TAG)
+                    write_tag(comm, GOOD_TAG)
                 else:
-                    writer(comm, BAD_TAG)
+                    write_tag(comm, BAD_TAG)
                 waiting = True
                 while waiting:
                     waiting = comm.Read(CHECK_TAG).Value
                     time.sleep(.1)
             else:
                 time.sleep(.2)
-                
 
-        except KeyboardInterrupt:
+
             print('exiting')
             read = False
         except Exception as e:
-            print('Unhandled Exception', e)
+            ('Unhandled Exception', e)
     
             
 
