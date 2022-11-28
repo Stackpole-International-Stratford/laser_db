@@ -21,15 +21,19 @@ PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)
 ]
 
 def startup():
-    
+    # print(check_barcode('V5SS223461001024046420', '50-8670'))
     pass
 
 
 def check_barcode(barcode, part):
 
     print('Part: ', part ,'Barcode: ', barcode)
-    pun_entry = PUNS[part-1]
 
+    # https://stackoverflow.com/a/8653568
+    pun_entry = next((item for item in PUNS if item["part"] == part), None)
+    if not pun_entry:
+        return False
+    
     result = re.search(pun_entry.get('regex'), barcode)
     if not result:
         return False
