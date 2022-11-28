@@ -1,0 +1,13 @@
+'AB1V Reaction Deisel', '50-8670', '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'
+'AB1V Reaction Gas', '50-0450', '^V5SS(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[1,2,3,4])(?<sequence>\\d{4})24280450$'
+'AB1V Input Deisel', '50-5401', '^V3SS(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[1,2,3,4])(?<sequence>\\d{4})24046418$'
+'AB1V Input Gas', '50-0447', '^V3SS(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[1,2,3,4])(?<sequence>\\d{4})24280447$'
+'AB1V OverDrive Deisel', '50-5404', '^V6SS(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[1,2,3,4])(?<sequence>\\d{4})24295404$'
+'AB1V OverDrive Gas', '50-0519', '^V6SS(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[1,2,3,4])(?<sequence>\\d{4})24280519$'
+'10R140 Gas', '50-3214', '^GTALB(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[0,1,2,3]0)(?<sequence>\\d{4})LC3P 7D007 CB$'
+'10R140 Diesel', '50-5214', '^GTALB(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[0,1,2,3]0)(?<sequence>\\d{4})LC3P 7D007 BB$'
+'10R80 Ford', '50-9341', '^GTALB(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[0,1,2,3]0)(?<sequence>\\d{4})LC3P 7D007 BB$'
+'10R60 Ford', '50-0455', '^GTALB(?<year>\\d\\d)(?<jdate>[0-3]\\d\\d)(?<station>[0,1,2,3]0)(?<sequence>\\d{4})LC3P 7D007 BB$'
+'10R80 GM', '50-9341', '^J6SS(?<year>\\d)(?<jdate>[0-3]\\d\\d)(?<sequence>\\d{4})Y7(?<station>[1,2,3,4])0$'
+'10R60 GM', '50-0455', '^J6SS(?<year>\\d)(?<jdate>[0-3]\\d\\d)(?<sequence>\\d{4})X0(?<station>[1,2,3,4])0$'
+
