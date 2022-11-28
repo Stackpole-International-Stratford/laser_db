@@ -30,5 +30,4 @@ User=root
 
 # Tell systemd to automatically start this service when the system boots
 # and after the network is fully up (assuming the service is enabled)
-After=network-online.target
-Wants=network-online.target
+WantedBy=multi-user.target
