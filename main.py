@@ -13,28 +13,28 @@ LASER_JOB = 'Part_Detected_To_Run'
 PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'},
         {'part': '50-5401', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046418$'},
         {'part': '50-0450', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-        {'part': '50-0447', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280447$'},
+        {'part': '50-0447', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
         {'part': '50-5404', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24295404$'},
         {'part': '50-0519', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
         {'part': '50-3214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
         {'part': '50-5214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
 ]
-
+  #'V5SS 22 332 3 0002 24049840'
 def startup():
     # print(check_barcode('V5SS223461001024046420', '50-8670'))
     pass
 
-
 def check_barcode(barcode, part):
 
     print('Part: ', part ,'Barcode: ', barcode)
+    # return True
 
     # https://stackoverflow.com/a/8653568
     pun_entry = next((item for item in PUNS if item["part"] == part), None)
     if not pun_entry:
         return False
     
-    result = re.search(pun_entry.get('regex'), barcode)
+    result = re.search(pun_entry['regex'], barcode)
     if not result:
         return False
 
@@ -53,7 +53,7 @@ def check_barcode(barcode, part):
     return True
 
 
-def write(comm, tag, value=True):
+def writer(comm, tag, value=True):
     passes =0
     rewrite = True
     while rewrite:
@@ -75,7 +75,7 @@ def write(comm, tag, value=True):
 if __name__ == "__main__":
     startup()
 
-    comm = PLC
+    comm = PLC()
     comm.IPAddress = '192.168.1.3'
     read = True
     while True:
@@ -87,18 +87,23 @@ if __name__ == "__main__":
                 job = tags[1].Value
                 status =  check_barcode(mark, job)
                 if status:
-                    write(comm, GOOD_TAG)
+                    writer(comm, GOOD_TAG)
                 else:
-                    write(comm, BAD_TAG)
+                    writer(comm, BAD_TAG)
+                waiting = True
                 while waiting:
                     waiting = comm.Read(CHECK_TAG).Value
                     time.sleep(.1)
-                      
+            else:
+                time.sleep(.2)
+                
+
         except KeyboardInterrupt:
             print('exiting')
             read = False
         except Exception as e:
             print('Unhandled Exception', e)
+    
             
 
 # db = sqlite3.connect('TEST.db')
