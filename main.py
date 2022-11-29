@@ -7,6 +7,9 @@ import sys
 import logging
 from systemd.journal import JournaldLogHandler
 
+import mysql.connector
+from mysql.connector import Error
+
 CHECK_TAG = 'Verify_Barcode'
 CODE_TAG = 'Laser_QR_Code_Text'
 GOOD_TAG = 'Barcode_OK'
@@ -23,6 +26,48 @@ def setup_logging(log_level=logging.DEBUG):
     # logger.addHandler(handler)
     logger.setLevel(log_level)
     return logger
+
+def get_PUNS2():
+    PUNS = []
+    try:
+        connection = mysql.connector.connect(host='10.4.1.245',
+                                            port=6601,
+                                            database='django_pms',
+                                            user='muser',
+                                            password='wsj.231.kql')
+        if connection.is_connected():
+            # db_Info = connection.get_server_info()
+            # print("Connected to MySQL Server version ", db_Info)
+            # cursor = connection.cursor()
+            # cursor.execute("select database();")
+            # record = cursor.fetchone()
+            # print("You're connected to database: ", record)
+
+            sql = 'SELECT * FROM barcode_barcodepun '
+            sql += f'WHERE active = true;'
+
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            PUNS = []
+            for row in rows:
+                pun = {
+                    'part': row['part_number'],
+                    'regex': row['regex']
+                }
+                PUNS.append(pun)
+            
+
+    except Error as e:
+        print("Error while connecting to MySQL", e)
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")    
+
+    return PUNS
+
 
 
 def get_PUNS():
@@ -44,6 +89,7 @@ def startup():
 
     # Get the current PUNS from the database:
     global PUNS
+    PUNS = get_PUNS2()
     PUNS = get_PUNS()
 
 
