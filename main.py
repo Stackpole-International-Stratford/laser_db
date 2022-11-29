@@ -3,7 +3,7 @@ import time
 from pylogix import PLC
 import re
 from datetime import datetime
-
+import sys
 import logging
 from systemd.journal import JournaldLogHandler
 
@@ -19,6 +19,8 @@ def setup_logging(log_level=logging.DEBUG):
     journald_handler = JournaldLogHandler()
     journald_handler.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
     logger.addHandler(journald_handler)
+    # handler = logging.StreamHandler(sys.stdout)
+    # logger.addHandler(handler)
     logger.setLevel(log_level)
     return logger
 
@@ -47,8 +49,8 @@ def startup():
 
 def check_barcode(barcode, part):
 
-    logger.info('Checking: ', barcode, 'for part: ', part)
-
+    logger.info(f'Checking: {barcode} for part: {part}')
+    #return False
     # https://stackoverflow.com/a/8653568
     pun_entry = next((item for item in PUNS if item["part"] == part), None)
     if not pun_entry:
@@ -62,13 +64,13 @@ def check_barcode(barcode, part):
 
     year = result.group('year')
     if not year == '22':
-        logger.info('Unexpected year, ', year, ' expected 22!')
+        logger.info(f'Unexpected year, {year}, expected 22!')
         return False
 
     day_of_year = datetime.now().timetuple().tm_yday
     jdate = result.group('jdate')
     if not int(jdate) == day_of_year:
-        logger.info('Unexpected day of the year, ', jdate, ' expected: ', day_of_year)
+        logger.info(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
         return False
     
     station = result.group('station')
@@ -93,7 +95,7 @@ def write_tag(comm, tag, value=True):
             if tag_result.Value == True:
                 rewrite = False
     
-    logger.info('Write Passes: ', passes)
+    logger.info(f'Write Passes: {passes}')
 
 
 if __name__ == "__main__":
@@ -105,7 +107,9 @@ if __name__ == "__main__":
     logger.info('Starting main loop')
     while True:
         try:
+            # logger.info(f'Reading {CHECK_TAG}')
             result=comm.Read(CHECK_TAG)
+            # logger.info(f'{result.TagName}, {result.Status}, {result.Value}')
             if result.Status == 'Success' and result.Value:
                 tags = comm.Read([CODE_TAG, LASER_JOB])
                 mark = tags[0].Value
@@ -123,7 +127,7 @@ if __name__ == "__main__":
                 time.sleep(.2)
 
         except Exception as e:
-            ('Unhandled Exception', e)
+            logger.error(f'Unhandled Exception: {e}')
     
             
 
