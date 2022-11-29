@@ -1,2 +1,3 @@
 pylogix==0.8.6
 systemd
+mysql-connector-python
