@@ -1,0 +1,15 @@
+ip: 192.168.1.67
+asset: 1615
+
+tags:
+  CHECK_TAG: 'Verify_Barcode'
+  CODE_TAG: 'Barcode_String'
+  GOOD_TAG: 'Barcode_OK'
+  BAD_TAG: 'Barcode_Not_OK'
+  LASER_JOB: 'Current_Part.Part_Name'
+
+# map the value of LASER_JOB tag to database part numbers
+part_map:
+  '4865 - FORD': '50-4865F'
+  '4865 - GM': '50-4865G'
+  '5081 - GM': '50-5081G'

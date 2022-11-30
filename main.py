@@ -87,6 +87,12 @@ def startup():
     global logger
     logger = setup_logging()
 
+    if not len(sys.argv) == 2:
+        raise SystemExit('Usage: laserdb configfile.yml')
+    
+    # TODO: read config file
+
+
     # Get the current PUNS from the database:
     global PUNS
     PUNS = get_PUNS2()
