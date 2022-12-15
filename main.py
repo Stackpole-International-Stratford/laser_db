@@ -16,6 +16,7 @@ GOOD_TAG = 'Barcode_OK'
 BAD_TAG = 'Barcode_Not_OK'
 LASER_JOB = 'Part_Detected_To_Run'
 
+laser_dict ={}
 
 def setup_logging(log_level=logging.DEBUG):
     logger = logging.getLogger('laserdb')
@@ -28,13 +29,15 @@ def setup_logging(log_level=logging.DEBUG):
     return logger
 
 def get_PUNS2():
+
     PUNS = []
+
+    connection = mysql.connector.connect(host='10.4.1.245',
+                                    port=6601,
+                                    database='django_pms',
+                                    user='muser',
+                                    password='wsj.231.kql')
     try:
-        connection = mysql.connector.connect(host='10.4.1.245',
-                                            port=6601,
-                                            database='django_pms',
-                                            user='muser',
-                                            password='wsj.231.kql')
         if connection.is_connected():
             # db_Info = connection.get_server_info()
             # print("Connected to MySQL Server version ", db_Info)
@@ -56,7 +59,6 @@ def get_PUNS2():
                     'regex': row['regex']
                 }
                 PUNS.append(pun)
-            
 
     except Error as e:
         print("Error while connecting to MySQL", e)
@@ -64,12 +66,12 @@ def get_PUNS2():
         if connection.is_connected():
             cursor.close()
             connection.close()
-            print("MySQL connection is closed")    
+            print("MySQL connection is closed")
 
     return PUNS
 
 
-
+# New gas parts, old deisel parts
 def get_PUNS():
     PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'},
         {'part': '50-5401', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046418$'},
@@ -82,33 +84,51 @@ def get_PUNS():
     ]
     return PUNS
 
+# new gas parts, NEW deisel parts
+def get_PUNS3():
+    PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049840$'},
+        {'part': '50-5401', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049838$'},
+        {'part': '50-0450', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
+        {'part': '50-0447', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
+        {'part': '50-5404', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049836$'},
+        {'part': '50-0519', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
+        {'part': '50-3214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
+        {'part': '50-5214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
+    ]
+    return PUNS
+
 
 def startup():
     global logger
     logger = setup_logging()
 
-    if not len(sys.argv) == 2:
-        raise SystemExit('Usage: laserdb configfile.yml')
+    # if not len(sys.argv) == 2:
+    #     raise SystemExit('Usage: laserdb configfile.yml')
     
     # TODO: read config file
 
 
     # Get the current PUNS from the database:
     global PUNS
-    PUNS = get_PUNS2()
     PUNS = get_PUNS()
+ #   PUNS = get_PUNS2()
+
+    global last_jdate
+    last_jdate = datetime.now().timetuple().tm_yday
 
 
 def check_barcode(barcode, part):
 
     logger.info(f'Checking: {barcode} for part: {part}')
-    #return False
+    # return False
+
+    # return True
     # https://stackoverflow.com/a/8653568
     pun_entry = next((item for item in PUNS if item["part"] == part), None)
     if not pun_entry:
-        logger.info('Failed to find part data!')
+        logger.info(f'Failed to find part data for {part}!')
         return False
-    
+
     result = re.search(pun_entry['regex'], barcode)
     if not result:
         logger.info('Failed to match part data!')
@@ -124,20 +144,68 @@ def check_barcode(barcode, part):
     if not int(jdate) == day_of_year:
         logger.info(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
         return False
-    
+
     station = result.group('station')
     sequence = result.group('sequence')
 
+    if not day_of_year == last_jdate:
+        logger.info(f'Clearing laser_dict as DOY rolled over.')
+        laser_dict = {}
+
+
+    # if barcode not in laser_dict.keys():
+    #     laser_dict[barcode] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    #     logger.info(f'Added {barcode} to laser_dict (len={len(laser_dict)})')
+    # else:
+    #     logger.info(f'The requested mark ({barcode}) was previously written at {laser_dict[barcode]}')
+    #     return False
+
+    tic = time.time()
+    connection = mysql.connector.connect(host='10.4.1.245',
+                                    port=6601,
+                                    database='django_pms',
+                                    user='muser',
+                                    password='wsj.231.kql')
+    try:
+        if connection.is_connected():
+
+            sql = 'SELECT COUNT(*) AS count FROM barcode_lasermark '
+            sql += f'WHERE part_number = "{pun_entry["part"]}" '
+            sql += f'AND bar_code = "{barcode}";'
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            if rows[0]['count'] > 0:
+                print('bad code from db')
+                return False
+            else:
+                sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, created_at) '
+                sql += f'VALUES("{pun_entry["part"]}", "{barcode}", NOW());'
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+                connection.commit()
+
+
+    except Error as e:
+        print(f'MySQL Error: {e}')
+        return False
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    toc = time.time()
+    logger.info(f'Barcode check took {toc - tic} seconds')
     return True
 
 
 def write_tag(comm, tag, value=True):
-    passes =0
+    # logger.info(f'Writing {value} to {tag}')
+    passes = 0
     rewrite = True
     while rewrite:
 
         result = comm.Write(tag, value)
-        time.sleep(.01)
         passes += 1
         if result.Status =='Success':
             check_result=comm.Read(CHECK_TAG)
@@ -147,7 +215,7 @@ def write_tag(comm, tag, value=True):
             if tag_result.Value == True:
                 rewrite = False
     
-    logger.info(f'Write Passes: {passes}')
+    # logger.info(f'Write Passes: {passes}')
 
 
 if __name__ == "__main__":
