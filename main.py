@@ -6,6 +6,8 @@ from datetime import datetime
 import sys
 import logging
 from systemd.journal import JournaldLogHandler
+import yaml
+import os
 
 import mysql.connector
 from mysql.connector import Error
@@ -28,37 +30,34 @@ def setup_logging(log_level=logging.DEBUG):
     logger.setLevel(log_level)
     return logger
 
-def get_PUNS2():
+def load_PUNS(config):
 
-    PUNS = []
+    # TODO Move params to .env file
+    db_params = {'host': '10.4.1.245',
+                'port': 6601,
+                'database':'django_pms',
+                'user': 'muser',
+                'password': 'wsj.231.kql'}
 
-    connection = mysql.connector.connect(host='10.4.1.245',
-                                    port=6601,
-                                    database='django_pms',
-                                    user='muser',
-                                    password='wsj.231.kql')
+    connection = mysql.connector.connect(**db_params)
+    puns = []
     try:
         if connection.is_connected():
-            # db_Info = connection.get_server_info()
-            # print("Connected to MySQL Server version ", db_Info)
-            # cursor = connection.cursor()
-            # cursor.execute("select database();")
-            # record = cursor.fetchone()
-            # print("You're connected to database: ", record)
-
-            sql = 'SELECT * FROM barcode_barcodepun '
-            sql += f'WHERE active = true;'
-
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(sql)
-            rows = cursor.fetchall()
-            PUNS = []
-            for row in rows:
+
+            for part_map in config.get(part_map):
+                sql = 'SELECT * FROM barcode_barcodepun '
+                sql += f'WHERE part_number = "{part_map[0]}" '
+                sql += f'AND active = true;'
+
+                cursor.execute(sql)
+                row = cursor.fetchone()
                 pun = {
                     'part': row['part_number'],
-                    'regex': row['regex']
+                    'regex': row['regex'],
+                    'machine_part': part_map[1],
                 }
-                PUNS.append(pun)
+                puns.append(pun)
 
     except Error as e:
         print("Error while connecting to MySQL", e)
@@ -68,7 +67,7 @@ def get_PUNS2():
             connection.close()
             print("MySQL connection is closed")
 
-    return PUNS
+    return puns
 
 
 # New gas parts, old deisel parts
@@ -98,20 +97,41 @@ def get_PUNS3():
     return PUNS
 
 
+def config_default(config_dict, key, default):
+    if key not in config_dict:
+        config_dict[key] = default
+
+
+def read_config_file(config_key=None):
+    if len(sys.argv) == 2:
+        config_path = f'{sys.argv[1]}.yml'
+    else:
+        config_path = f'/etc/laser_db/{config_key}.config'
+
+    logger.info(f'Getting config from {config_path}')
+
+    if not os.path.exists(config_path):
+        logger.exception(f'Config file not found! {config_path}')
+        raise ValueError(f'Config file not found! {config_path}')
+
+    with open(config_path, 'r') as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+
+    return config
+
+
 def startup():
     global logger
     logger = setup_logging()
 
-    # if not len(sys.argv) == 2:
-    #     raise SystemExit('Usage: laserdb configfile.yml')
-    
-    # TODO: read config file
+ #   global config
+#    config = read_config_file("laser_db")
 
-
-    # Get the current PUNS from the database:
     global PUNS
+  #  PUNS = load_PUNS(config)
+    
+    # PUNS = get_PUNS()
     PUNS = get_PUNS()
- #   PUNS = get_PUNS2()
 
     global last_jdate
     last_jdate = datetime.now().timetuple().tm_yday
@@ -135,8 +155,8 @@ def check_barcode(barcode, part):
         return False
 
     year = result.group('year')
-    if not year == '22':
-        logger.info(f'Unexpected year, {year}, expected 22!')
+    if not year == '23':
+        logger.info(f'Unexpected year, {year}, expected 23!')
         return False
 
     day_of_year = datetime.now().timetuple().tm_yday
@@ -147,18 +167,6 @@ def check_barcode(barcode, part):
 
     station = result.group('station')
     sequence = result.group('sequence')
-
-    if not day_of_year == last_jdate:
-        logger.info(f'Clearing laser_dict as DOY rolled over.')
-        laser_dict = {}
-
-
-    # if barcode not in laser_dict.keys():
-    #     laser_dict[barcode] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-    #     logger.info(f'Added {barcode} to laser_dict (len={len(laser_dict)})')
-    # else:
-    #     logger.info(f'The requested mark ({barcode}) was previously written at {laser_dict[barcode]}')
-    #     return False
 
     tic = time.time()
     connection = mysql.connector.connect(host='10.4.1.245',
