@@ -1,0 +1,22 @@
+ip: 192.168.10.1
+asset: 1725Laser
+
+tags:
+  CHECK_TAG: 'Verify_Barcode'
+  CODE_TAG: 'Barcode_String'
+  GOOD_TAG: 'Barcode_OK'
+  BAD_TAG: 'Barcode_Not_OK'
+  LASER_JOB: 'CurrentPart.LaserProg'
+
+# map the value of LASER_JOB tag to database part numbers
+# key is LASER_JOB tag value, value is part_number column in database
+part_map:
+  '1': '50-5404'
+  '2': '50-0519'
+  '3': '50-0447'
+  '4': '50-5401'
+  '5': '50-5214'
+  '6': '50-3214'
+  '7': '50-8670'
+  '8': '50-0450'
+
