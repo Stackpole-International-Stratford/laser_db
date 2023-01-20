@@ -12,11 +12,11 @@ import os
 import mysql.connector
 from mysql.connector import Error
 
-CHECK_TAG = 'Verify_Barcode'
-CODE_TAG = 'Laser_QR_Code_Text'
-GOOD_TAG = 'Barcode_OK'
-BAD_TAG = 'Barcode_Not_OK'
-LASER_JOB = 'Part_Detected_To_Run'
+# CHECK_TAG = 'Verify_Barcode'
+# CODE_TAG = 'Laser_QR_Code_Text'
+# GOOD_TAG = 'Barcode_OK'
+# BAD_TAG = 'Barcode_Not_OK'
+# LASER_JOB = 'Part_Detected_To_Run'
 
 laser_dict ={}
 
@@ -44,20 +44,22 @@ def load_PUNS(config):
     try:
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True)
+            part_mapping = config.get('part_map')
+            for key, value in part_mapping.items():
 
-            for part_map in config.get(part_map):
                 sql = 'SELECT * FROM barcode_barcodepun '
-                sql += f'WHERE part_number = "{part_map[0]}" '
+                sql += f'WHERE part_number = "{value}" '
                 sql += f'AND active = true;'
 
                 cursor.execute(sql)
                 row = cursor.fetchone()
-                pun = {
-                    'part': row['part_number'],
-                    'regex': row['regex'],
-                    'machine_part': part_map[1],
-                }
-                puns.append(pun)
+                if row:
+                    pun = {
+                        'part': row['part_number'],
+                        'regex': row['regex'],
+                        'machine_part': key,
+                    }
+                    puns.append(pun)
 
     except Error as e:
         print("Error while connecting to MySQL", e)
@@ -65,7 +67,6 @@ def load_PUNS(config):
         if connection.is_connected():
             cursor.close()
             connection.close()
-            print("MySQL connection is closed")
 
     return puns
 
@@ -104,14 +105,14 @@ def config_default(config_dict, key, default):
 
 def read_config_file(config_key=None):
     if len(sys.argv) == 2:
-        config_path = f'{sys.argv[1]}.yml'
+        config_path = f'./configs/{sys.argv[1]}.yml'
     else:
-        config_path = f'/etc/laser_db/{config_key}.config'
+        config_path = f'/etc/laserdb/{config_key}.config'
 
-    logger.info(f'Getting config from {config_path}')
+    logger.info(f'Reading config from {config_path}')
 
     if not os.path.exists(config_path):
-        logger.exception(f'Config file not found! {config_path}')
+        logger.error(f'Config file not found! {config_path}')
         raise ValueError(f'Config file not found! {config_path}')
 
     with open(config_path, 'r') as file:
@@ -122,47 +123,54 @@ def read_config_file(config_key=None):
 
 def startup():
     global logger
-    logger = setup_logging()
+    logger = setup_logging(logging.INFO)
 
- #   global config
-#    config = read_config_file("laser_db")
+    global config
+    config = read_config_file("laserdb")
+    tags = config.get('tags')
+    global CHECK_TAG 
+    CHECK_TAG = tags.get('CHECK_TAG')
+    global CODE_TAG 
+    CODE_TAG = tags.get('CODE_TAG')
+    global GOOD_TAG
+    GOOD_TAG = tags.get('GOOD_TAG')
+    global BAD_TAG
+    BAD_TAG = tags.get('BAD_TAG')
+    global LASER_JOB
+    LASER_JOB = tags.get('LASER_JOB')
 
     global PUNS
-  #  PUNS = load_PUNS(config)
+    PUNS = load_PUNS(config)
+
+    # global last_jday
+    # last_jday = datetime.now().timetuple().tm_yday
+
+
+def check_barcode(barcode, job):
     
-    # PUNS = get_PUNS()
-    PUNS = get_PUNS()
-
-    global last_jdate
-    last_jdate = datetime.now().timetuple().tm_yday
-
-
-def check_barcode(barcode, part):
-
-    logger.info(f'Checking: {barcode} for part: {part}')
-    # return False
-
-    # return True
     # https://stackoverflow.com/a/8653568
-    pun_entry = next((item for item in PUNS if item["part"] == part), None)
+    pun_entry = next((item for item in PUNS if item["machine_part"] == f'{job}'), None)
     if not pun_entry:
-        logger.info(f'Failed to find part data for {part}!')
+        logger.error(f'Failed to find part data for {job}!')
         return False
+
+    part = pun_entry.get('part')
 
     result = re.search(pun_entry['regex'], barcode)
     if not result:
-        logger.info('Failed to match part data!')
+        logger.error(f'Failed to match part data! {barcode} {pun_entry["part"]}')
         return False
 
+    current_year = datetime.now().timetuple().tm_year-2000
     year = result.group('year')
-    if not year == '23':
-        logger.info(f'Unexpected year, {year}, expected 23!')
+    if not int(year) == current_year:
+        logger.error(f'Unexpected year, {year}, expected {current_year}!')
         return False
 
     day_of_year = datetime.now().timetuple().tm_yday
     jdate = result.group('jdate')
     if not int(jdate) == day_of_year:
-        logger.info(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
+        logger.error(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
         return False
 
     station = result.group('station')
@@ -184,7 +192,7 @@ def check_barcode(barcode, part):
             cursor.execute(sql)
             rows = cursor.fetchall()
             if rows[0]['count'] > 0:
-                print('bad code from db')
+                logger.error(f'Found in db! : {barcode}')
                 return False
             else:
                 sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, created_at) '
@@ -195,7 +203,7 @@ def check_barcode(barcode, part):
 
 
     except Error as e:
-        print(f'MySQL Error: {e}')
+        logger.error(f'MySQL Error: {e}')
         return False
     finally:
         if connection.is_connected():
@@ -203,12 +211,11 @@ def check_barcode(barcode, part):
             connection.close()
 
     toc = time.time()
-    logger.info(f'Barcode check took {toc - tic} seconds')
+    logger.info(f'Verified: {barcode} against: {part}: {(toc - tic):.4} seconds')
     return True
 
 
 def write_tag(comm, tag, value=True):
-    # logger.info(f'Writing {value} to {tag}')
     passes = 0
     rewrite = True
     while rewrite:
@@ -222,43 +229,41 @@ def write_tag(comm, tag, value=True):
                 rewrite = False
             if tag_result.Value == True:
                 rewrite = False
+    logger.debug(f'Wrote tag in {passes} passes')
     
-    # logger.info(f'Write Passes: {passes}')
-
 
 if __name__ == "__main__":
     startup()
 
     comm = PLC()
-    comm.IPAddress = '192.168.1.3'
-    read = True
+    comm.IPAddress = config.get('ip')
+
     logger.info('Starting main loop')
+
     while True:
         try:
-            # logger.info(f'Reading {CHECK_TAG}')
             result=comm.Read(CHECK_TAG)
-            # logger.info(f'{result.TagName}, {result.Status}, {result.Value}')
-            if result.Status == 'Success' and result.Value:
-                tags = comm.Read([CODE_TAG, LASER_JOB])
-                mark = tags[0].Value
-                job = tags[1].Value
-                status =  check_barcode(mark, job)
-                if status:
-                    write_tag(comm, GOOD_TAG)
-                else:
-                    write_tag(comm, BAD_TAG)
-                waiting = True
-                while waiting:
-                    waiting = comm.Read(CHECK_TAG).Value
-                    time.sleep(.1)
+
+            if result.Status == 'Success':
+                if result.Value:
+                    tags = comm.Read([CODE_TAG, LASER_JOB])
+                    mark = tags[0].Value
+                    job = tags[1].Value
+                    status =  check_barcode(mark, job)
+                    if status:
+                        write_tag(comm, GOOD_TAG)
+                    else:
+                        write_tag(comm, BAD_TAG)
+                    waiting = True
+                    while waiting:
+                        waiting = comm.Read(CHECK_TAG).Value
+                        time.sleep(.1)
+                    
+                    time.sleep(1)
+
             else:
-                time.sleep(.2)
+                logger.error(f'Failed to read {CHECK_TAG}: {result.Status}')
+                time.sleep(2)
 
         except Exception as e:
             logger.error(f'Unhandled Exception: {e}')
-    
-            
-
-# db = sqlite3.connect('TEST.db')
-# cursor = db.cursor()
-# print('Connect ok')
