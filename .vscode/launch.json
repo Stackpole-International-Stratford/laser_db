@@ -9,9 +9,9 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": [
-                "AB1V"
-            ],
+            // "args": [
+            //     "AB1V"
+            // ],
             "console": "integratedTerminal",
             "justMyCode": true
         },
