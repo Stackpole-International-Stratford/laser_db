@@ -44,8 +44,8 @@ def load_PUNS(config):
     try:
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True)
-            part_mapping = config.get('part_mapping')
-            for key, value in part_map.items():
+            part_mapping = config.get('part_map')
+            for key, value in part_mapping.items():
 
                 sql = 'SELECT * FROM barcode_barcodepun '
                 sql += f'WHERE part_number = "{value}" '
