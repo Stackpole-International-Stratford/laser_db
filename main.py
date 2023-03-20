@@ -169,7 +169,7 @@ def check_barcode(barcode, job):
 
     day_of_year = datetime.now().timetuple().tm_yday
     jdate = result.group('jdate')
-    if abs(int(jdate) - day_of_year) <= 1:
+    if abs(int(jdate) - day_of_year) > 1:
         logger.error(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
         return False
 
