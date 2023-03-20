@@ -9,7 +9,7 @@ tags:
   LASER_JOB: 'Part_Detected_To_Run'
 
 # map the value of LASER_JOB tag to database part numbers
-part_mapping:
+part_map:
   '50-8670': '50-8670'
   '50-5401': '50-5401'
   '50-0450': '50-0450'
