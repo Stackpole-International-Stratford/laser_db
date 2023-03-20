@@ -44,7 +44,7 @@ def load_PUNS(config):
     try:
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True)
-            part_mapping = config.get('part_map')
+            part_mapping = config.get('part_mapping')
             for key, value in part_mapping.items():
 
                 sql = 'SELECT * FROM barcode_barcodepun '
@@ -169,7 +169,7 @@ def check_barcode(barcode, job):
 
     day_of_year = datetime.now().timetuple().tm_yday
     jdate = result.group('jdate')
-    if not int(jdate) == day_of_year:
+    if abs(int(jdate) - day_of_year) <= 1:
         logger.error(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
         return False
 
