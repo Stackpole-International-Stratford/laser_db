@@ -19,26 +19,29 @@ from mysql.connector import Error
 # LASER_JOB = 'Part_Detected_To_Run'
 
 
-laser_dict ={}
+laser_dict = {}
+
 
 def setup_logging(log_level=logging.DEBUG):
     logger = logging.getLogger('laserdb')
     journald_handler = JournaldLogHandler()
-    journald_handler.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
+    journald_handler.setFormatter(
+        logging.Formatter('[%(levelname)s] %(message)s'))
     logger.addHandler(journald_handler)
     # handler = logging.StreamHandler(sys.stdout)
     # logger.addHandler(handler)
     logger.setLevel(log_level)
     return logger
 
+
 def load_PUNS(config):
 
     # TODO Move params to .env file
     db_params = {'host': '10.4.1.245',
-                'port': 6601,
-                'database':'django_pms',
-                'user': 'muser',
-                'password': 'wsj.231.kql'}
+                 'port': 6601,
+                 'database': 'django_pms',
+                 'user': 'muser',
+                 'password': 'wsj.231.kql'}
 
     connection = mysql.connector.connect(**db_params)
     puns = []
@@ -74,28 +77,44 @@ def load_PUNS(config):
 
 # New gas parts, old deisel parts
 def get_PUNS():
-    PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'},
-        {'part': '50-5401', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046418$'},
-        {'part': '50-0450', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-        {'part': '50-0447', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
-        {'part': '50-5404', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24295404$'},
-        {'part': '50-0519', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
-        {'part': '50-3214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
-        {'part': '50-5214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
-    ]
+    PUNS = [{'part': '50-8670', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'},
+            {'part': '50-5401',
+                'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046418$'},
+            {'part': '50-0450',
+            'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
+            {'part': '50-0447',
+            'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
+            {'part': '50-5404',
+            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24295404$'},
+            {'part': '50-0519',
+            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
+            {'part': '50-3214',
+            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
+            {'part': '50-5214',
+            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
+            ]
     return PUNS
 
 # new gas parts, NEW deisel parts
+
+
 def get_PUNS3():
-    PUNS = [{'part': '50-8670', 'regex':'^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049840$'},
-        {'part': '50-5401', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049838$'},
-        {'part': '50-0450', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-        {'part': '50-0447', 'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
-        {'part': '50-5404', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049836$'},
-        {'part': '50-0519', 'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
-        {'part': '50-3214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
-        {'part': '50-5214', 'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
-    ]
+    PUNS = [{'part': '50-8670', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049840$'},
+            {'part': '50-5401',
+                'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049838$'},
+            {'part': '50-0450',
+            'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
+            {'part': '50-0447',
+            'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
+            {'part': '50-5404',
+            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049836$'},
+            {'part': '50-0519',
+            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
+            {'part': '50-3214',
+            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
+            {'part': '50-5214',
+            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
+            ]
     return PUNS
 
 
@@ -129,9 +148,9 @@ def startup():
     global config
     config = read_config_file("laserdb")
     tags = config.get('tags')
-    global CHECK_TAG 
+    global CHECK_TAG
     CHECK_TAG = tags.get('CHECK_TAG')
-    global CODE_TAG 
+    global CODE_TAG
     CODE_TAG = tags.get('CODE_TAG')
     global GOOD_TAG
     GOOD_TAG = tags.get('GOOD_TAG')
@@ -153,9 +172,10 @@ def startup():
 
 
 def check_barcode(barcode, job):
-    
+
     # https://stackoverflow.com/a/8653568
-    pun_entry = next((item for item in PUNS if item["machine_part"] == f'{job}'), None)
+    pun_entry = next(
+        (item for item in PUNS if item["machine_part"] == f'{job}'), None)
     if not pun_entry:
         logger.error(f'Failed to find part data for {job}!')
         return False
@@ -164,7 +184,8 @@ def check_barcode(barcode, job):
 
     result = re.search(pun_entry['regex'], barcode)
     if not result:
-        logger.error(f'Failed to match part data! {barcode} {pun_entry["part"]}')
+        logger.error(
+            f'Failed to match part data! {barcode} {pun_entry["part"]}')
         return False
 
     current_year = datetime.now().timetuple().tm_year-2000
@@ -177,7 +198,8 @@ def check_barcode(barcode, job):
     jdate = result.group('jdate')
     jdate = int(jdate)
     if abs(jdate - day_of_year) > 1:
-        logger.error(f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
+        logger.error(
+            f'Unexpected day of the year, {jdate}, expected: {day_of_year}')
         return False
 
     station = result.group('station')
@@ -185,10 +207,10 @@ def check_barcode(barcode, job):
 
     tic = time.time()
     connection = mysql.connector.connect(host='10.4.1.245',
-                                    port=6601,
-                                    database='django_pms',
-                                    user='muser',
-                                    password='wsj.231.kql')
+                                         port=6601,
+                                         database='django_pms',
+                                         user='muser',
+                                         password='wsj.231.kql')
     try:
         if connection.is_connected():
 
@@ -208,7 +230,6 @@ def check_barcode(barcode, job):
                 rows = cursor.fetchall()
                 connection.commit()
 
-
     except Error as e:
         logger.error(f'MySQL Error: {e}')
         return False
@@ -218,7 +239,8 @@ def check_barcode(barcode, job):
             connection.close()
 
     toc = time.time()
-    logger.info(f'Verified: {barcode} against: {part}: {(toc - tic):.4} seconds')
+    logger.info(
+        f'Verified: {barcode} against: {part}: {(toc - tic):.4} seconds')
     return True
 
 
@@ -229,9 +251,9 @@ def write_tag(comm, tag, value=True):
 
         result = comm.Write(tag, value)
         passes += 1
-        if result.Status =='Success':
-            check_result=comm.Read(CHECK_TAG)
-            tag_result=comm.Read(tag)
+        if result.Status == 'Success':
+            check_result = comm.Read(CHECK_TAG)
+            tag_result = comm.Read(tag)
             if check_result.Value == False:
                 rewrite = False
             if tag_result.Value == True:
@@ -242,7 +264,7 @@ def write_tag(comm, tag, value=True):
 def update_grade_info(grade_camera_string):
     if grade_camera_string == 'ERROR':
         return
-    
+    tic = time.time()
     connection = mysql.connector.connect(host='10.4.1.245',
                                          port=6601,
                                          database='django_pms',
@@ -252,25 +274,26 @@ def update_grade_info(grade_camera_string):
         if connection.is_connected():
 
             sql = 'UPDATE barcode_lasermark '
-            sql += f'SET grade="{grade_camera_string[:1]}" '
-            sql += f'WHERE bar_code LiKE "%{grade_camera_string[:-2]}"; '
-            print(sql)
+            sql += f'SET grade="{grade_camera_string[-1:]}" '
+            sql += f'WHERE bar_code LiKE "%{grade_camera_string[:-2]}" '
+            sql += f'LIMIT 1;'
+            # print(sql)
 
-            # cursor = connection.cursor(dictionary=True)
-            # cursor.execute(sql)
-            # rows = cursor.fetchall()
-            # if rows[0]['count'] > 0:
-            #     logger.error(f'Found in db! : {barcode}')
-            #     return False
-            # else:
-            #     sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, created_at) '
-            #     sql += f'VALUES("{pun_entry["part"]}", "{barcode}", NOW());'
-            #     cursor.execute(sql)
-            #     rows = cursor.fetchall()
-            #     connection.commit()
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            connection.commit()
 
     except Exception as e:
         logger.error(f'Unhandled Exception: {e}')
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+    toc = time.time()
+    logger.info(
+        f'Updated: {grade_camera_string[:-2]} with grade: {grade_camera_string[-1:]}: {(toc - tic):.4} seconds')
 
 
 if __name__ == "__main__":
@@ -283,14 +306,14 @@ if __name__ == "__main__":
 
     while True:
         try:
-            result=comm.Read(CHECK_TAG)
+            result = comm.Read(CHECK_TAG)
 
             if result.Status == 'Success':
                 if result.Value:
                     tags = comm.Read([CODE_TAG, LASER_JOB])
                     mark = tags[0].Value
                     job = tags[1].Value
-                    status =  check_barcode(mark, job)
+                    status = check_barcode(mark, job)
                     if status:
                         write_tag(comm, GOOD_TAG)
                     else:
@@ -299,27 +322,24 @@ if __name__ == "__main__":
                     while waiting:
                         waiting = comm.Read(CHECK_TAG).Value
                         time.sleep(.1)
-                    
+
                     time.sleep(1)
 
             else:
                 logger.error(f'Failed to read {CHECK_TAG}: {result.Status}')
                 time.sleep(2)
 
-            result=comm.Read(GRADE_RESULT)
+            result = comm.Read(GRADE_RESULT)
             if result.Status == 'Success':
-                result.Value=result.Value[:result.Value.index('\r')]
+                result.Value = result.Value[:result.Value.index('\r')]
                 if last_grade_result == '':
                     last_grade_result = result.Value
                 if result.Value != last_grade_result:
                     last_grade_result = result.Value
-                    print(f'{result.Value}')
+                    # print(f'{result.Value}')
                     update_grade_info(result.Value)
 
             time.sleep(1)
-
-
-
 
         except Exception as e:
             logger.error(f'Unhandled Exception: {e}')
