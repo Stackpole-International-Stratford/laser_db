@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "args": [
-                "1724"
+                "AB1V"
             ],
             "console": "integratedTerminal",
             "justMyCode": true
