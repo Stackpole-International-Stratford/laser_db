@@ -18,6 +18,7 @@ from mysql.connector import Error
 # BAD_TAG = 'Barcode_Not_OK'
 # LASER_JOB = 'Part_Detected_To_Run'
 
+
 laser_dict ={}
 
 def setup_logging(log_level=logging.DEBUG):
@@ -143,8 +144,9 @@ def startup():
     PUNS = load_PUNS(config)
 
     global GRADE_RESULT
-    GRADE_RESULT = tags.get('GRADE_RESULT')
-
+    GRADE_RESULT = config.get('GRADE_RESULT', 'BarcodeResultString')
+    global last_grade_result
+    last_grade_result = ""
 
     # global last_jday
     # last_jday = datetime.now().timetuple().tm_yday
@@ -235,7 +237,41 @@ def write_tag(comm, tag, value=True):
             if tag_result.Value == True:
                 rewrite = False
     logger.debug(f'Wrote tag in {passes} passes')
+
+
+def update_grade_info(grade_camera_string):
+    if grade_camera_string == 'ERROR':
+        return
     
+    connection = mysql.connector.connect(host='10.4.1.245',
+                                         port=6601,
+                                         database='django_pms',
+                                         user='muser',
+                                         password='wsj.231.kql')
+    try:
+        if connection.is_connected():
+
+            sql = 'UPDATE barcode_lasermark '
+            sql += f'SET grade="{grade_camera_string[:1]}" '
+            sql += f'WHERE bar_code LiKE "%{grade_camera_string[:-2]}"; '
+            print(sql)
+
+            # cursor = connection.cursor(dictionary=True)
+            # cursor.execute(sql)
+            # rows = cursor.fetchall()
+            # if rows[0]['count'] > 0:
+            #     logger.error(f'Found in db! : {barcode}')
+            #     return False
+            # else:
+            #     sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, created_at) '
+            #     sql += f'VALUES("{pun_entry["part"]}", "{barcode}", NOW());'
+            #     cursor.execute(sql)
+            #     rows = cursor.fetchall()
+            #     connection.commit()
+
+    except Exception as e:
+        logger.error(f'Unhandled Exception: {e}')
+
 
 if __name__ == "__main__":
     startup()
@@ -269,6 +305,21 @@ if __name__ == "__main__":
             else:
                 logger.error(f'Failed to read {CHECK_TAG}: {result.Status}')
                 time.sleep(2)
+
+            result=comm.Read(GRADE_RESULT)
+            if result.Status == 'Success':
+                result.Value=result.Value[:result.Value.index('\r')]
+                if last_grade_result == '':
+                    last_grade_result = result.Value
+                if result.Value != last_grade_result:
+                    last_grade_result = result.Value
+                    print(f'{result.Value}')
+                    update_grade_info(result.Value)
+
+            time.sleep(1)
+
+
+
 
         except Exception as e:
             logger.error(f'Unhandled Exception: {e}')
