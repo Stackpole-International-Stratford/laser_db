@@ -142,6 +142,10 @@ def startup():
     global PUNS
     PUNS = load_PUNS(config)
 
+    global GRADE_RESULT
+    GRADE_RESULT = tags.get('GRADE_RESULT')
+
+
     # global last_jday
     # last_jday = datetime.now().timetuple().tm_yday
 
