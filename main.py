@@ -275,7 +275,7 @@ def update_grade_info(grade_camera_string):
 
             sql = 'UPDATE barcode_lasermark '
             sql += f'SET grade="{grade_camera_string[-1:]}" '
-            sql += f'WHERE bar_code LiKE "%{grade_camera_string[:-2]}" '
+            sql += f'WHERE bar_code="{grade_camera_string[:-2]}" '
             sql += f'LIMIT 1;'
             # print(sql)
 
