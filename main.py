@@ -262,7 +262,7 @@ def write_tag(comm, tag, value=True):
 
 
 def update_grade_info(grade_camera_string):
-    if grade_camera_string == 'ERROR':
+    if grade_camera_string[:5] == 'ERROR':
         return
     tic = time.time()
     connection = mysql.connector.connect(host='10.4.1.245',
