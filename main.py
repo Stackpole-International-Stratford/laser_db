@@ -147,6 +147,10 @@ def startup():
 
     global config
     config = read_config_file("laserdb")
+
+    global asset
+    asset = config.get('asset')
+
     tags = config.get('tags')
     global CHECK_TAG
     CHECK_TAG = tags.get('CHECK_TAG')
@@ -158,12 +162,12 @@ def startup():
     BAD_TAG = tags.get('BAD_TAG')
     global LASER_JOB
     LASER_JOB = tags.get('LASER_JOB')
+    global GRADE_RESULT
+    GRADE_RESULT = tags.get('GRADE_RESULT')
 
     global PUNS
     PUNS = load_PUNS(config)
 
-    global GRADE_RESULT
-    GRADE_RESULT = tags.get('GRADE_RESULT')
     global last_grade_result
     last_grade_result = ""
 

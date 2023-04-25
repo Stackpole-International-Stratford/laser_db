@@ -1,5 +1,5 @@
 ip: 192.168.10.1
-asset: 1724Laser
+asset: 1724
 
 tags:
   CHECK_TAG: 'Verify_Barcode'
