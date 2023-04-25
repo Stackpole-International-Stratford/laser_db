@@ -7,7 +7,8 @@ tags:
   GOOD_TAG: 'Barcode_OK'
   BAD_TAG: 'Barcode_Not_OK'
   LASER_JOB: 'CurrentPart.LaserProg'
-
+  GRADE_RESULT: 'BarcodeResultString'
+  
 # map the value of LASER_JOB tag to database part numbers
 # key is LASER_JOB tag value, value is part_number column in database
 part_map:
