@@ -163,7 +163,7 @@ def startup():
     PUNS = load_PUNS(config)
 
     global GRADE_RESULT
-    GRADE_RESULT = config.get('GRADE_RESULT', 'BarcodeResultString')
+    GRADE_RESULT = tags.get('GRADE_RESULT', 'BarcodeResultString')
     global last_grade_result
     last_grade_result = ""
 
