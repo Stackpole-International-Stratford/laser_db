@@ -228,8 +228,8 @@ def check_barcode(barcode, job):
                 logger.error(f'Found in db! : {barcode}')
                 return False
             else:
-                sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, created_at) '
-                sql += f'VALUES("{pun_entry["part"]}", "{barcode}", NOW());'
+                sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, asset, created_at) '
+                sql += f'VALUES("{pun_entry["part"]}", "{barcode}", "{asset}", NOW());'
                 cursor.execute(sql)
                 rows = cursor.fetchall()
                 connection.commit()
