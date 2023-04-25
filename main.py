@@ -163,7 +163,7 @@ def startup():
     PUNS = load_PUNS(config)
 
     global GRADE_RESULT
-    GRADE_RESULT = tags.get('GRADE_RESULT', 'BarcodeResultString')
+    GRADE_RESULT = tags.get('GRADE_RESULT')
     global last_grade_result
     last_grade_result = ""
 
@@ -280,6 +280,7 @@ def update_grade_info(grade_camera_string):
             # print(sql)
 
             cursor = connection.cursor()
+            tic = time.time()
             cursor.execute(sql)
             connection.commit()
 
