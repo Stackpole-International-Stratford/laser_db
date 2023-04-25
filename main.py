@@ -280,7 +280,6 @@ def update_grade_info(grade_camera_string):
             # print(sql)
 
             cursor = connection.cursor()
-            tic = time.time()
             cursor.execute(sql)
             connection.commit()
 
