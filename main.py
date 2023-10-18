@@ -230,6 +230,7 @@ def check_barcode(barcode, job):
             else:
                 sql = 'INSERT INTO barcode_lasermark (part_number, bar_code, asset, created_at) '
                 sql += f'VALUES("{pun_entry["part"]}", "{barcode}", "{asset}", NOW());'
+                # print(sql)
                 cursor.execute(sql)
                 rows = cursor.fetchall()
                 connection.commit()
