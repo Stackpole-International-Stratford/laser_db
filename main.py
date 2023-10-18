@@ -235,7 +235,7 @@ def check_barcode(barcode, job):
                 connection.commit()
 
     except Error as e:
-        logger.error(f'MySQL Error: {e}')
+        logger.error(f'MySQL Error creating entry({barcode}): {e}')
         return False
     finally:
         if connection.is_connected():
@@ -281,14 +281,15 @@ def update_grade_info(grade_camera_string):
             sql += f'SET grade="{grade_camera_string[-1:]}" '
             sql += f'WHERE bar_code="{grade_camera_string[:-2]}" '
             sql += f'LIMIT 1;'
-            # print(sql)
+            # print(f'sql:{sql}')
 
             cursor = connection.cursor()
-            cursor.execute(sql)
+            res = cursor.execute(sql)
+            # print(f'res:{res}')
             connection.commit()
 
     except Exception as e:
-        logger.error(f'Unhandled Exception: {e}')
+        logger.error(f'Unhandled Exception during update_grade({grade_camera_string}): {e}')
 
     finally:
         if connection.is_connected():
@@ -331,7 +332,7 @@ if __name__ == "__main__":
 
             else:
                 logger.error(f'Failed to read {CHECK_TAG}: {result.Status}')
-                time.sleep(2)
+                time.sleep(.5)
 
             result = comm.Read(GRADE_RESULT)
             if result.Status == 'Success':
@@ -343,7 +344,7 @@ if __name__ == "__main__":
                     # print(f'{result.Value}')
                     update_grade_info(result.Value)
 
-            time.sleep(1)
+            time.sleep(.5)
 
         except Exception as e:
             logger.error(f'Unhandled Exception: {e}')
