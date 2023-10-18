@@ -162,6 +162,19 @@ def check_barcode(barcode, job):
     sequence = result.group('sequence')
 
     tic = time.time()
+
+    ### TODO:  Create endpoint django endpoint to replace the below test
+    #
+    #   import requests
+    #   r = requests.get(f'http://pmdsdata12/barcode/api/verify?barcode={barcode}&part={part}')
+    #   if r.status_code == 200:
+    #       logger.info(f'Verified: {barcode} against: {part}: {(toc - tic):.4} seconds')
+    #       return True
+    #   else:
+    #       logger.error(f'Found in db! : {barcode}')
+    #       return False
+
+
     try:
         connection = mysql.connector.connect(**db_params)
         if connection.is_connected():
@@ -218,6 +231,17 @@ def update_grade_info(grade_camera_string):
     if grade_camera_string[:5] == 'ERROR':
         return
     tic = time.time()
+
+    ### TODO:  Create endpoint django endpoint to replace the below
+    #
+    #   import requests
+    #   r = requests.get(f'http://pmdsdata12/barcode/api/grade?barcode={barcode}&grade={grade}')
+    #   if r.status_code == 200:
+    #       ...
+    #   else:
+    #       ...
+    #       
+
     try:
         connection = mysql.connector.connect(**db_params)
         if connection.is_connected():
