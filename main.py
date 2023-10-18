@@ -12,11 +12,13 @@ import os
 import mysql.connector
 from mysql.connector import Error
 
-# CHECK_TAG = 'Verify_Barcode'
-# CODE_TAG = 'Laser_QR_Code_Text'
-# GOOD_TAG = 'Barcode_OK'
-# BAD_TAG = 'Barcode_Not_OK'
-# LASER_JOB = 'Part_Detected_To_Run'
+
+# TODO Move params to .env file
+db_params = {'host': '10.4.1.245',
+                'port': 6601,
+                'database': 'django_pms',
+                'user': 'muser',
+                'password': 'wsj.231.kql'}
 
 
 laser_dict = {}
@@ -36,16 +38,9 @@ def setup_logging(log_level=logging.DEBUG):
 
 def load_PUNS(config):
 
-    # TODO Move params to .env file
-    db_params = {'host': '10.4.1.245',
-                 'port': 6601,
-                 'database': 'django_pms',
-                 'user': 'muser',
-                 'password': 'wsj.231.kql'}
-
-    connection = mysql.connector.connect(**db_params)
     puns = []
     try:
+        connection = mysql.connector.connect(**db_params)
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True)
             part_mapping = config.get('part_map')
@@ -73,49 +68,6 @@ def load_PUNS(config):
             connection.close()
 
     return puns
-
-
-# New gas parts, old deisel parts
-def get_PUNS():
-    PUNS = [{'part': '50-8670', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'},
-            {'part': '50-5401',
-                'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046418$'},
-            {'part': '50-0450',
-            'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-            {'part': '50-0447',
-            'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
-            {'part': '50-5404',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24295404$'},
-            {'part': '50-0519',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
-            {'part': '50-3214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
-            {'part': '50-5214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
-            ]
-    return PUNS
-
-# new gas parts, NEW deisel parts
-
-
-def get_PUNS3():
-    PUNS = [{'part': '50-8670', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049840$'},
-            {'part': '50-5401',
-                'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049838$'},
-            {'part': '50-0450',
-            'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-            {'part': '50-0447',
-            'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
-            {'part': '50-5404',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049836$'},
-            {'part': '50-0519',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
-            {'part': '50-3214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
-            {'part': '50-5214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
-            ]
-    return PUNS
 
 
 def config_default(config_dict, key, default):
@@ -210,12 +162,8 @@ def check_barcode(barcode, job):
     sequence = result.group('sequence')
 
     tic = time.time()
-    connection = mysql.connector.connect(host='10.4.1.245',
-                                         port=6601,
-                                         database='django_pms',
-                                         user='muser',
-                                         password='wsj.231.kql')
     try:
+        connection = mysql.connector.connect(**db_params)
         if connection.is_connected():
 
             sql = 'SELECT COUNT(*) AS count FROM barcode_lasermark '
@@ -270,12 +218,8 @@ def update_grade_info(grade_camera_string):
     if grade_camera_string[:5] == 'ERROR':
         return
     tic = time.time()
-    connection = mysql.connector.connect(host='10.4.1.245',
-                                         port=6601,
-                                         database='django_pms',
-                                         user='muser',
-                                         password='wsj.231.kql')
     try:
+        connection = mysql.connector.connect(**db_params)
         if connection.is_connected():
 
             sql = 'UPDATE barcode_lasermark '
