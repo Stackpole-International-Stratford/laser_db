@@ -1,16 +1,16 @@
 # systemd unit file for the Python Demo Service
-
+# <asset> needs to be changed to asset number (using sed)
 
 [Unit]
 
 # Human readable name of the unit
-Description=Laser DB Check Service
+Description=Laser DB Check Service for <asset>
 
 
 [Service]
 
 # Command to execute when the service is started
-ExecStart=/srv/laser_db/venv/bin/python3 /srv/laser_db/main.py
+ExecStart=/srv/laser_db/venv/bin/python3 /srv/laser_db/main.py <asset>
 # Disable Python's buffering of STDOUT and STDERR, so that output from the
 # service shows up immediately in systemd's logs
 Environment=PYTHONUNBUFFERED=1
