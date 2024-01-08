@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 import sys
 import logging
-from systemd.journal import JournaldLogHandler
+from loguru import logger
 import yaml
 import os
 
@@ -24,12 +24,8 @@ laser_dict = {}
 
 def setup_logging(log_level=logging.DEBUG):
     logger = logging.getLogger('laserdb')
-    journald_handler = JournaldLogHandler()
-    journald_handler.setFormatter(
-        logging.Formatter('[%(levelname)s] %(message)s'))
-    logger.addHandler(journald_handler)
-    # handler = logging.StreamHandler(sys.stdout)
-    # logger.addHandler(handler)
+    handler = logging.StreamHandler(sys.stdout)
+    logger.addHandler(handler)
     logger.setLevel(log_level)
     return logger
 
