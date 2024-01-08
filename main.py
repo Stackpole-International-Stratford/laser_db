@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 import sys
 import logging
-from systemd.journal import JournaldLogHandler
+import loguru
 import yaml
 import os
 
@@ -22,18 +22,6 @@ db_params = {'host': '10.4.1.245',
 
 
 laser_dict = {}
-
-
-def setup_logging(log_level=logging.DEBUG):
-    logger = logging.getLogger('laserdb')
-    journald_handler = JournaldLogHandler()
-    journald_handler.setFormatter(
-        logging.Formatter('[%(levelname)s] %(message)s'))
-    logger.addHandler(journald_handler)
-    # handler = logging.StreamHandler(sys.stdout)
-    # logger.addHandler(handler)
-    logger.setLevel(log_level)
-    return logger
 
 
 def load_PUNS(config):
@@ -91,40 +79,6 @@ def read_config_file(config_key=None):
         config = yaml.load(file, Loader=yaml.FullLoader)
 
     return config
-
-
-def startup():
-    global logger
-    logger = setup_logging(logging.INFO)
-
-    global config
-    config = read_config_file("laserdb")
-
-    global asset
-    asset = config.get('asset')
-
-    tags = config.get('tags')
-    global CHECK_TAG
-    CHECK_TAG = tags.get('CHECK_TAG')
-    global CODE_TAG
-    CODE_TAG = tags.get('CODE_TAG')
-    global GOOD_TAG
-    GOOD_TAG = tags.get('GOOD_TAG')
-    global BAD_TAG
-    BAD_TAG = tags.get('BAD_TAG')
-    global LASER_JOB
-    LASER_JOB = tags.get('LASER_JOB')
-    global GRADE_RESULT
-    GRADE_RESULT = tags.get('GRADE_RESULT')
-
-    global PUNS
-    PUNS = load_PUNS(config)
-
-    global last_grade_result
-    last_grade_result = ""
-
-    # global last_jday
-    # last_jday = datetime.now().timetuple().tm_yday
 
 
 def check_barcode(barcode, job):
@@ -270,7 +224,52 @@ def update_grade_info(grade_camera_string):
         f'Updated: {grade_camera_string[:-2]} with grade: {grade_camera_string[-1:]}: {(toc - tic):.4} seconds')
 
 
-if __name__ == "__main__":
+def setup_logging():
+    log_level = os.environ.get("LOG_LEVEL", default='INFO')
+
+    # Remove and reconfigure default sys.error logger
+    logger.remove(0)
+    logger.add(sys.stderr, level=log_level)
+
+    logger.info(f'Logging set to {log_level}')
+    return logger
+
+
+def startup():
+    global logger
+    logger = setup_logging()
+
+    global config
+    config = read_config_file("laserdb")
+
+    global asset
+    asset = config.get('asset')
+
+    tags = config.get('tags')
+    global CHECK_TAG
+    CHECK_TAG = tags.get('CHECK_TAG')
+    global CODE_TAG
+    CODE_TAG = tags.get('CODE_TAG')
+    global GOOD_TAG
+    GOOD_TAG = tags.get('GOOD_TAG')
+    global BAD_TAG
+    BAD_TAG = tags.get('BAD_TAG')
+    global LASER_JOB
+    LASER_JOB = tags.get('LASER_JOB')
+    global GRADE_RESULT
+    GRADE_RESULT = tags.get('GRADE_RESULT')
+
+    global PUNS
+    PUNS = load_PUNS(config)
+
+    global last_grade_result
+    last_grade_result = ""
+
+    # global last_jday
+    # last_jday = datetime.now().timetuple().tm_yday
+
+@logger.catch()
+def main():
     startup()
 
     comm = PLC()
@@ -317,3 +316,7 @@ if __name__ == "__main__":
 
         except Exception as e:
             logger.error(f'Unhandled Exception: {e}')
+
+
+if __name__ == "__main__":
+    main()

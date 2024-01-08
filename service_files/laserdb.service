@@ -11,6 +11,7 @@ Description=Laser DB Check Service for <asset>
 
 # Command to execute when the service is started
 ExecStart=/srv/laser_db/venv/bin/python3 /srv/laser_db/main.py <asset>
+
 # Disable Python's buffering of STDOUT and STDERR, so that output from the
 # service shows up immediately in systemd's logs
 Environment=PYTHONUNBUFFERED=1
@@ -24,6 +25,10 @@ Type=simple
 # Use a dedicated user to run our service
 User=root
 
+# redirect STDOUT and STDERR to journal
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
 
 [Install]
 
