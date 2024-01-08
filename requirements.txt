@@ -1,3 +1,4 @@
 pylogix==0.8.6
-loguru
 mysql-connector-python===8.0.31
+loguru
+pyyaml
