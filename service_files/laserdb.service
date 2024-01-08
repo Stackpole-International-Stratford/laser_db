@@ -10,7 +10,7 @@ Description=Laser DB Check Service for <asset>
 [Service]
 
 # Command to execute when the service is started
-ExecStart=/srv/laser_db/venv/bin/python3 /srv/laser_db/main.py <asset>
+ExecStart=/srv/laser_db/venv/bin/python3 /srv/laser_db/main.py
 
 # Disable Python's buffering of STDOUT and STDERR, so that output from the
 # service shows up immediately in systemd's logs

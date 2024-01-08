@@ -4,13 +4,27 @@ from pylogix import PLC
 import re
 from datetime import datetime
 import sys
-import logging
-import loguru
 import yaml
 import os
 
 import mysql.connector
 from mysql.connector import Error
+
+global last_grade_result
+last_grade_result = ""
+
+def setup_logging():
+    from loguru import logger
+    log_level = os.environ.get("LOG_LEVEL", default='INFO')
+
+    # Remove and reconfigure default sys.error logger
+    logger.remove(0)
+    logger.add(sys.stderr, level=log_level)
+
+    logger.info(f'Logging set to {log_level}')
+    return logger
+
+logger = setup_logging()
 
 
 # TODO Move params to .env file
@@ -224,21 +238,7 @@ def update_grade_info(grade_camera_string):
         f'Updated: {grade_camera_string[:-2]} with grade: {grade_camera_string[-1:]}: {(toc - tic):.4} seconds')
 
 
-def setup_logging():
-    log_level = os.environ.get("LOG_LEVEL", default='INFO')
-
-    # Remove and reconfigure default sys.error logger
-    logger.remove(0)
-    logger.add(sys.stderr, level=log_level)
-
-    logger.info(f'Logging set to {log_level}')
-    return logger
-
-
 def startup():
-    global logger
-    logger = setup_logging()
-
     global config
     config = read_config_file("laserdb")
 
@@ -262,13 +262,11 @@ def startup():
     global PUNS
     PUNS = load_PUNS(config)
 
-    global last_grade_result
-    last_grade_result = ""
 
     # global last_jday
     # last_jday = datetime.now().timetuple().tm_yday
 
-@logger.catch()
+# @logger.catch()
 def main():
     startup()
 
@@ -309,8 +307,12 @@ def main():
                     last_grade_result = result.Value
                 if result.Value != last_grade_result:
                     last_grade_result = result.Value
-                    # print(f'{result.Value}')
+                    print(f'{result.Value}')
                     update_grade_info(result.Value)
+
+            else:
+                logger.error(f'Failed to read {CHECK_TAG}: {result.Status}')
+                time.sleep(.5)
 
             time.sleep(.5)
 
