@@ -12,23 +12,12 @@ import os
 import mysql.connector
 from mysql.connector import Error
 
-# CHECK_TAG = 'Verify_Barcode'
-# CODE_TAG = 'Laser_QR_Code_Text'
-# GOOD_TAG = 'Barcode_OK'
-# BAD_TAG = 'Barcode_Not_OK'
-# LASER_JOB = 'Part_Detected_To_Run'
-
-
-laser_dict = {}
-
-
 def setup_logging(log_level=logging.DEBUG):
     logger = logging.getLogger('laserdb')
     handler = logging.StreamHandler(sys.stdout)
     logger.addHandler(handler)
     logger.setLevel(log_level)
     return logger
-
 
 def load_PUNS(config):
 
@@ -70,54 +59,9 @@ def load_PUNS(config):
 
     return puns
 
-
-# New gas parts, old deisel parts
-def get_PUNS():
-    PUNS = [{'part': '50-8670', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046420$'},
-            {'part': '50-5401',
-                'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24046418$'},
-            {'part': '50-0450',
-            'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-            {'part': '50-0447',
-            'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
-            {'part': '50-5404',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24295404$'},
-            {'part': '50-0519',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
-            {'part': '50-3214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
-            {'part': '50-5214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
-            ]
-    return PUNS
-
-# new gas parts, NEW deisel parts
-
-
-def get_PUNS3():
-    PUNS = [{'part': '50-8670', 'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049840$'},
-            {'part': '50-5401',
-                'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049838$'},
-            {'part': '50-0450',
-            'regex': '^V5SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280450$'},
-            {'part': '50-0447',
-            'regex': '^V3SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049832$'},
-            {'part': '50-5404',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24049836$'},
-            {'part': '50-0519',
-            'regex': '^V6SS(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[1,2,3,4])(?P<sequence>\\d{4})24280519$'},
-            {'part': '50-3214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 CB$'},
-            {'part': '50-5214',
-            'regex': '^GTALB(?P<year>\\d\\d)(?P<jdate>[0-3]\\d\\d)(?P<station>[0,1,2,3]0)(?P<sequence>\\d{4})LC3P 7D007 BB$'},
-            ]
-    return PUNS
-
-
 def config_default(config_dict, key, default):
     if key not in config_dict:
         config_dict[key] = default
-
 
 def read_config_file(config_key=None):
     if len(sys.argv) == 2:
@@ -135,7 +79,6 @@ def read_config_file(config_key=None):
         config = yaml.load(file, Loader=yaml.FullLoader)
 
     return config
-
 
 def startup():
     global logger
@@ -167,12 +110,7 @@ def startup():
     global last_grade_result
     last_grade_result = ""
 
-    # global last_jday
-    # last_jday = datetime.now().timetuple().tm_yday
-
-
 def check_barcode(barcode, job):
-
     # https://stackoverflow.com/a/8653568
     pun_entry = next(
         (item for item in PUNS if item["machine_part"] == f'{job}'), None)
@@ -243,7 +181,6 @@ def check_barcode(barcode, job):
         f'Verified: {barcode} against: {part}: {(toc - tic):.4} seconds')
     return True
 
-
 def write_tag(comm, tag, value=True):
     passes = 0
     rewrite = True
@@ -294,7 +231,6 @@ def update_grade_info(grade_camera_string):
     toc = time.time()
     logger.info(
         f'Updated: {grade_camera_string[:-2]} with grade: {grade_camera_string[-1:]}: {(toc - tic):.4} seconds')
-
 
 if __name__ == "__main__":
     startup()
