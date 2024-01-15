@@ -197,7 +197,7 @@ def write_tag(comm, tag, value=True):
     logger.debug(f'Wrote tag in {passes} passes')
 
 
-def update_grade_info(grade_camera_string):
+def update_grade_info(grade_camera_string, job):
     if grade_camera_string[:5] == 'ERROR':
         return
     tic = time.time()
@@ -214,6 +214,13 @@ def update_grade_info(grade_camera_string):
             sql += f'WHERE bar_code="{grade_camera_string[:-2]}" '
             sql += f'LIMIT 1;'
             # print(sql)
+
+            # sql  = f'INSERT INTO barcode_lasermark (part_number, bar_code, grade, asset) '
+            # sql += f'VALUES ("{job}", "{grade_camera_string[:-2]}", "{grade_camera_string[-1:]}", "{asset}") '
+            # sql += f'ON DUPLICATE KEY UPDATE'
+            # sql += f'grade="{grade_camera_string[-1:]}"'
+            # # print(sql)
+
 
             cursor = connection.cursor()
             cursor.execute(sql)
@@ -272,7 +279,7 @@ if __name__ == "__main__":
                 if result.Value != last_grade_result:
                     last_grade_result = result.Value
                     # print(f'{result.Value}')
-                    update_grade_info(result.Value)
+                    update_grade_info(result.Value, job)
 
             time.sleep(1)
 
